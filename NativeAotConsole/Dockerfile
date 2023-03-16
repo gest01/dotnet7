@@ -1,0 +1,19 @@
+﻿FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+WORKDIR /app
+
+# build and publish
+COPY *.csproj ./
+RUN dotnet restore
+COPY . .
+RUN apt-get update && apt-get install -y zlib1g-dev g++ && apt-get clean
+RUN dotnet publish -r linux-x64 -c Release
+
+# runtime image
+FROM debian AS base
+
+RUN apt-get update && apt-get install -y file procps htop libicu67 && apt-get clean
+
+WORKDIR /app
+COPY --from=build /app/bin/Release/net7.0/linux-x64/ .
+
+CMD ["./NativeAotConsole"]
