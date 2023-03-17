@@ -7,6 +7,7 @@ namespace ProfileGuidedOptimization;
 public class PgoBenchmark
 {
     static readonly int[] s_values = Enumerable.Range(0, 1_000).ToArray();
+    static readonly IEnumerator<int> _source = Enumerable.Range(0, 1_000).GetEnumerator();
 
     [Benchmark]
     public int Where()
@@ -20,16 +21,18 @@ public class PgoBenchmark
         return s_values.Where(f => f % 2 == 0).OrderByDescending(f => f).Sum();
     }
 
-    [Benchmark]
-    public int InterfaceDispatch()
-    {
-        ISumOperation ops = new MySumOperation();
-        return s_values.Sum(f => Bla.Calculate(ops, s_values));
-    }
+    // [Benchmark]
+    // public int InterfaceDispatch()
+    // {
+    //     ISumOperation ops = new MySumOperation();
+    //     return s_values.Sum(f => Bla.Calculate(ops, s_values));
+    // }
 
+    [Benchmark]
+    public void MoveNext() => _source.MoveNext();
 
     [Benchmark]
-    public int DelegatePGO() => Sum(s_values, i => i * 42);
+    public int Delegate() => Sum(s_values, i => i * 42);
 
     static int Sum(int[] values, Func<int, int>? func)
     {
